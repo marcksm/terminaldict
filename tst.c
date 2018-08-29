@@ -3,8 +3,6 @@
 #include <string.h>
 #include "tst.h"
 
-
-
 Node *root;
 
 List *get (char *key) {

@@ -2,77 +2,111 @@
 #include <stdlib.h>
 #include <string.h>
 #include "tst.h"
+#include "dict.h"
+#define LINE_MAX_SIZE 250
+
+int nextChar(FILE *dict) {
+  int c;
+  c = fgetc (dict);
+  return c;
+}
+
+int nextCharLine(char *line, int *current) {
+  return line[(*current)++];
+}
+void errorLog(char *error, int line, const char *func_name) {
+  printf ("%s", error);
+  printf (" - function name: %s", func_name);
+  printf (" - At line %d", line);
+  exit(1);
+}
+
+FILE *openDictionaryData(FILE *dict) {
+  dict = fopen("de-to-en.txt", "r");
+  if (dict == NULL) { errorLog("Error dictionary not found", __LINE__, __func__); }
+  return dict;
+}
+FILE *ignoreHeader(FILE *dict) {
+  if (dict == NULL) { errorLog("Error dict is null", __LINE__, __func__); }
+  int current_character;
+  current_character = nextChar(dict);
+  while (current_character == '#') {
+    do {
+      current_character = nextChar(dict);
+    } while(current_character != '\n');
+    current_character = nextChar(dict);
+  }
+  return dict;
+}
+
+char *extractOneLine(FILE *dict) {
+  char *line, *buffer;
+  int current_character, index = 0;
+  buffer = malloc(LINE_MAX_SIZE * sizeof (int));
+  current_character = nextChar(dict);
+  do {
+    buffer[index++] = current_character;
+    current_character = nextChar(dict);
+  } while(current_character != '\n');
+  line = buffer;
+  return line;
+}
+Word *extractOneWord(char *line) {
+  Word *w;
+  char *deutsch, *english, *gen;
+  int current_character = 0, index = 0;
+  int current = 0;
+  deutsch = malloc(LINE_MAX_SIZE * sizeof(int));
+  english = malloc(LINE_MAX_SIZE * sizeof(int));
+  gen = malloc(LINE_MAX_SIZE * sizeof(int));
+  printf("\n");
+  do {
+    current_character = nextCharLine(line, &current);
+    if (current_character == '{') break;
+    deutsch[index++] = current_character;
+  } while(current_character != '{');
+  printf ("%s\n", deutsch);
+  index = 0;
+  gen[index++] = '{';
+  do {
+    current_character = nextCharLine(line, &current);
+    gen[index++] = current_character;
+  } while(current_character != '}');
+  printf ("%s\n", gen);
+  index = 0;
+  do {
+    current_character = nextCharLine(line, &current);
+    if (current_character == '\t') current_character = nextCharLine(line, &current);
+    english[index++] = current_character;
+  } while(current_character != '\n');
+  printf ("%s\n", english);
+  // w->deutsch = deutsch;
+  // w->english = english;
+  // w->gen = gen;
+  //
+  // free(line);
+  return w;
+}
+FILE *mountDictionary(FILE *dict) {
+  if (dict == NULL) { errorLog("Error dict is null", __LINE__, __func__); }
+
+  Word *w;
+  char *line;
+
+  line = extractOneLine(dict);
+  printf ("%s", line);
+
+  w    = extractOneWord(line);
+  // printf ("\n%s", w->english);
+  return dict;
+}
 
 int main () {
+  char *word1, *word2;
   FILE *dict = NULL;
-  dict = fopen("de-en.txt", "r");
-  int c = 0, count = 0;
-  char *buff1 = NULL, *buff2= NULL, *buff3 = NULL, *newbuffer = NULL;
-  char *word, *word1, *word2;
-  c = fgetc (dict);
-  int length = 0, length1 = 0, length2 = 0, length3 = 0;
-
-  word1 = malloc (sizeof (int));
-  word2 = malloc (sizeof (int));
-  do {
-    count++;
-    //if (count > 1200000) break;
-    //printf ("%d\n",c);
-    buff1 = malloc (45 * sizeof (int));
-    buff2 = malloc (45 * sizeof (int));
-    buff3 = malloc (5 * sizeof (int));
-    while ('\t' != c) {
-      if (c == EOF) break;
-      buff1[length1] = c;
-      buff1[length1 + 1] = '\0';
-      c = fgetc (dict);
-      length1++;
-    }
-    while (c == '\t') { c = fgetc (dict); }
-    length1 = 0;
-    while ('\n' != (c)) {
-      if (c == EOF) break;
-      buff2[length2] = c;
-      buff2[length2 + 1] = '\0';
-      c = fgetc (dict);
-      if (c == '\t') break;
-      length2++;
-    }
-    length2 = 0;
-    while (c == '\t') { c = fgetc (dict); }
-    while ('\n' != (c)) {
-      if (c == EOF) break;
-      if (c == '\t') break;
-      buff3[length3] = c;
-      buff3[length3 + 1] = '\0';
-      c = fgetc (dict);
-      if (c == '\t') break;
-      length3++;
-    }
-    length3 = 0;
-    while (c == '\n') { c = fgetc (dict); }
-    put(buff1, buff2);
-    //printf ("%s\n", get(buff1));
-    //printf ("[%s]\n", buff2);
-    if (c == EOF) break;
-    //free (buff1);
-    //free (buff2);
-    //free (buff3);
-  } while (1);
-  while (1) {
-    word = malloc (300 * sizeof (int));
-    c = getc (stdin);
-    while (c != '\n') {
-      word[length] = c;
-      word[length + 1] = '\0';
-      length++;
-      c = getc (stdin);
-    }
-    printf ("APALAVRA EH:%s\n",word);
-    printword (word);
-    length = 0;
-    free (word);
-  }
-
+  dict = openDictionaryData(dict);
+  dict = ignoreHeader(dict);
+  dict = mountDictionary(dict);
+  fclose (dict);
   return 0;
 }
