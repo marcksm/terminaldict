@@ -3,7 +3,7 @@
 #include <string.h>
 #include "tst.h"
 #include "dict.h"
-#define LINE_MAX_SIZE 250
+#define LINE_MAX_SIZE 350
 
 int nextChar(FILE *dict) {
   int c;
@@ -12,6 +12,7 @@ int nextChar(FILE *dict) {
 }
 
 int nextCharLine(char *line, int *current) {
+  if (line[(*current)] == '\0') return '\n';
   return line[(*current)++];
 }
 void errorLog(char *error, int line, const char *func_name) {
@@ -40,64 +41,67 @@ FILE *ignoreHeader(FILE *dict) {
 }
 
 char *extractOneLine(FILE *dict) {
-  char *line, *buffer;
+  char *line;
   int current_character, index = 0;
-  buffer = malloc(LINE_MAX_SIZE * sizeof (int));
+  line = malloc(LINE_MAX_SIZE * sizeof (int));
   current_character = nextChar(dict);
   do {
-    buffer[index++] = current_character;
+    line[index++] = current_character;
     current_character = nextChar(dict);
   } while(current_character != '\n');
-  line = buffer;
+  line[index] = '\0';
   return line;
 }
+
 Word *extractOneWord(char *line) {
   Word *w;
-  char *deutsch, *english, *gen;
+  w = malloc(sizeof(Word));
   int current_character = 0, index = 0;
   int current = 0;
-  deutsch = malloc(LINE_MAX_SIZE * sizeof(int));
-  english = malloc(LINE_MAX_SIZE * sizeof(int));
-  gen = malloc(LINE_MAX_SIZE * sizeof(int));
-  printf("\n");
+  w->deutsch = malloc(LINE_MAX_SIZE * sizeof(int));
+  w->english = malloc(LINE_MAX_SIZE * sizeof(int));
+  w->gen     = malloc(LINE_MAX_SIZE * sizeof(int));
   do {
     current_character = nextCharLine(line, &current);
-    if (current_character == '{') break;
-    deutsch[index++] = current_character;
-  } while(current_character != '{');
-  printf ("%s\n", deutsch);
+    // if (current_character == '{') break;
+    if (current_character == '\t') break;
+    w->deutsch[index++] = current_character;
+  } while(current_character != '\t');
+  w->deutsch[index] = '\0';
   index = 0;
-  gen[index++] = '{';
-  do {
-    current_character = nextCharLine(line, &current);
-    gen[index++] = current_character;
-  } while(current_character != '}');
-  printf ("%s\n", gen);
+  // w->gen[index++] = '{';
+  // do {
+  //   current_character = nextCharLine(line, &current);
+  //   if (current_character == '\n') break;
+  //   w->gen[index++] = current_character;
+  // } while(current_character != '}');
+  // w->gen[index] = '\0';
   index = 0;
   do {
     current_character = nextCharLine(line, &current);
     if (current_character == '\t') current_character = nextCharLine(line, &current);
-    english[index++] = current_character;
+    if (current_character == '\n') break;
+    w->english[index++] = current_character;
   } while(current_character != '\n');
-  printf ("%s\n", english);
-  // w->deutsch = deutsch;
-  // w->english = english;
-  // w->gen = gen;
-  //
-  // free(line);
+  w->english[index] = '\0';
+
+  free(line);
   return w;
 }
 FILE *mountDictionary(FILE *dict) {
   if (dict == NULL) { errorLog("Error dict is null", __LINE__, __func__); }
 
   Word *w;
+  int i = 50;
   char *line;
-
+  do {
   line = extractOneLine(dict);
-  printf ("%s", line);
+  w = extractOneWord(line);
 
-  w    = extractOneWord(line);
-  // printf ("\n%s", w->english);
+  printf("\n\n\n%s\n", w->deutsch);
+  printf("%s\n", w->english);
+  printf("%s\n\n\n", w->gen);
+}while(i-- > 0);
   return dict;
 }
 
