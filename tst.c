@@ -3,6 +3,8 @@
 #include <string.h>
 #include "tst.h"
 
+
+
 Node *root;
 
 List *get (char *key) {
@@ -26,15 +28,17 @@ void put (char *key, char *val) {
 }
 
 Node *put1 (Node *x, char *key, char *val, int d) {
+  // printf("%d - %c, ", d, key[d]);
   int c = key[d];
   if (x == NULL) {
     Node *y = malloc (sizeof (Node));
     x = y;
     x->c = c;
   }
+  // printf("%c", c);
   if (c < x->c) { x->left = put1(x->left,key,val,d); }
   else if (c > x->c) { x->right = put1(x->right,key,val,d);}
-  else if (d < strlen(key) - 1) {x->mid = put1(x->mid,key,val,d+1);}
+  else if (d < strlen(key) - 1) { x->mid = put1(x->mid, key, val, d+1);}
   else {
     List *novo = malloc (sizeof (List));
     List *p;

@@ -54,6 +54,7 @@ char *extractOneLine(FILE *dict) {
 }
 
 Word *extractOneWord(char *line) {
+  if (line == NULL) return NULL;
   Word *w;
   w = malloc(sizeof(Word));
   int current_character = 0, index = 0;
@@ -68,14 +69,7 @@ Word *extractOneWord(char *line) {
     w->deutsch[index++] = current_character;
   } while(current_character != '\t');
   w->deutsch[index] = '\0';
-  index = 0;
-  // w->gen[index++] = '{';
-  // do {
-  //   current_character = nextCharLine(line, &current);
-  //   if (current_character == '\n') break;
-  //   w->gen[index++] = current_character;
-  // } while(current_character != '}');
-  // w->gen[index] = '\0';
+
   index = 0;
   do {
     current_character = nextCharLine(line, &current);
@@ -85,23 +79,29 @@ Word *extractOneWord(char *line) {
   } while(current_character != '\n');
   w->english[index] = '\0';
 
-  free(line);
   return w;
 }
 FILE *mountDictionary(FILE *dict) {
   if (dict == NULL) { errorLog("Error dict is null", __LINE__, __func__); }
-
   Word *w;
-  int i = 50;
+  int i = 50000;
   char *line;
   do {
+
+
   line = extractOneLine(dict);
   w = extractOneWord(line);
+  put(w->deutsch, w->english);
+  // printf("\n%s\n", w->deutsch);
+  // printf("%s\n\n", w->english);
+  // free(w->deutsch);
+  // free(w->english);
+  // free(w->gen);
+  // free(w);
+  free(line);
+  //printword(w->deutsch);
+} while(i-- > 0);
 
-  printf("\n\n\n%s\n", w->deutsch);
-  printf("%s\n", w->english);
-  printf("%s\n\n\n", w->gen);
-}while(i-- > 0);
   return dict;
 }
 
