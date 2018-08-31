@@ -11,6 +11,14 @@ int nextChar(FILE *dict) {
   return c;
 }
 
+int isEOF(FILE *dict) {
+  int c;
+  c = fgetc (dict);
+  if (c == EOF) return 1;
+  ungetc(c, dict);
+  return 0;
+}
+
 int nextCharLine(char *line, int *current) {
   if (line[(*current)] == '\0') return '\n';
   return line[(*current)++];
@@ -44,9 +52,11 @@ char *extractOneLine(FILE *dict) {
   char *line;
   int current_character, index = 0;
   line = malloc(LINE_MAX_SIZE * sizeof (int));
+  if (isEOF(dict)) return NULL;
   current_character = nextChar(dict);
   do {
     line[index++] = current_character;
+    if (isEOF(dict)) return NULL;
     current_character = nextChar(dict);
   } while(current_character != '\n');
   line[index] = '\0';
@@ -84,13 +94,14 @@ Word *extractOneWord(char *line) {
 FILE *mountDictionary(FILE *dict) {
   if (dict == NULL) { errorLog("Error dict is null", __LINE__, __func__); }
   Word *w;
-  int i = 50000;
+  int i = 5000000;
   char *line;
   do {
 
 
   line = extractOneLine(dict);
   w = extractOneWord(line);
+  if (w == NULL) { printf ("FIM"); break; };
   put(w->deutsch, w->english);
   // printf("\n%s\n", w->deutsch);
   // printf("%s\n\n", w->english);
@@ -99,7 +110,7 @@ FILE *mountDictionary(FILE *dict) {
   // free(w->gen);
   // free(w);
   free(line);
-  //printword(w->deutsch);
+  // printword(w->deutsch);
 } while(i-- > 0);
 
   return dict;
